@@ -1,6 +1,7 @@
 // ignore_for_file: use_key_in_widget_constructors
 
 import 'package:flutter/material.dart';
+import 'package:myntra/Home/homeclass.dart';
 import 'package:myntra/Home/tab_bar.dart';
 import 'package:myntra/pages/beauty_health_page/beauty_health_page.dart';
 import 'package:myntra/pages/electronics/electronics.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
           child: SvgPicture.asset('assets/images/meeshoLogo.svg'),
         ),
         categories: [
+          "Home Page",
           "Women Ethnic",
           "Men",
           "Kids",
@@ -48,6 +50,7 @@ class MyApp extends StatelessWidget {
           "Electronics",
         ],
         pages: [
+          HmPage(),
           WomenPage(),
           MenPage(),
           KidsPage(),

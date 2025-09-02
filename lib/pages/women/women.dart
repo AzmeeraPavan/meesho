@@ -7,6 +7,7 @@ import 'package:myntra/pages/product_details/product_details_page.dart';
 import 'package:myntra/widget/customcheckbox.dart';
 import 'package:myntra/widget/customedropdown.dart';
 import 'package:myntra/widget/mediaqurry.dart';
+import 'package:intl/intl.dart';
 
 class WomenPage extends StatefulWidget {
   const WomenPage({super.key});
@@ -17,12 +18,19 @@ class WomenPage extends StatefulWidget {
 
 class _WomenPageState extends State<WomenPage> {
   String? selectedFilter;
+
+  String? selectedDateFilter; // Default to All
   List<String> selectedCheckboxes = [];
   late List<CategoryItem> categories = [];
   Map<String, List<String>> filterOptions = {}; // For dynamic checkbox options
 
   String? tempSelectedFilter;
   List<String> tempSelectedCheckboxes = [];
+  String? tempSelecteddate;
+  DateTime? fromDate;
+  DateTime? toDate;
+  DateTime? tempFromDate;
+  DateTime? tempToDate;
 
   @override
   void initState() {
@@ -87,6 +95,32 @@ class _WomenPageState extends State<WomenPage> {
         filteredCategories.sort((a, b) => b.price.compareTo(a.price));
       }
     }
+    //--------------------------------------------------------------------Apply date filter logic
+    if (selectedDateFilter == 'Latest') {
+      DateTime cutoffDate = DateTime(2025, 8, 15);
+      filteredCategories = filteredCategories.where((item) {
+        try {
+          DateTime createdDate = DateTime.parse(item.createdAt);
+          return createdDate.isAfter(cutoffDate);
+        } catch (e) {
+          return false; // -----------------------------------------------Skip if date parse fails
+        }
+      }).toList();
+    }
+    if (fromDate != null && toDate != null) {
+      filteredCategories = filteredCategories.where((item) {
+        try {
+          DateTime createdDate = DateTime.parse(item.createdAt);
+          return (createdDate.isAfter(fromDate!) ||
+                  createdDate.isAtSameMomentAs(fromDate!)) &&
+              (createdDate.isBefore(toDate!) ||
+                  createdDate.isAtSameMomentAs(toDate!));
+        } catch (e) {
+          return false;
+        }
+      }).toList();
+    }
+
     return FutureBuilder<String>(
       future: _loadTitle(),
       builder: (context, snapshot) {
@@ -113,6 +147,82 @@ class _WomenPageState extends State<WomenPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      Card(
+                        child: CustomDropdown(
+                          items: const ['All', 'Latest'],
+                          initialValue: tempSelecteddate ?? selectedDateFilter,
+                          onChanged: (val) {
+                            setState(() {
+                              tempSelecteddate = val;
+                            });
+                          },
+                        ),
+                      ),
+                      Card(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // From Date Picker
+                            TextButton(
+                              onPressed: () async {
+                                DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2025),
+                                  lastDate: DateTime.now(), // ✅ No future date
+                                );
+                                if (picked != null) {
+                                  setState(() {
+                                    tempFromDate = picked;
+
+                                    // If tempToDate exists and is before the new tempFromDate, reset it
+                                    if (tempToDate != null &&
+                                        tempToDate!.isBefore(tempFromDate!)) {
+                                      tempToDate = null;
+                                    }
+                                  });
+                                }
+                              },
+                              child: Text(
+                                tempFromDate == null
+                                    ? "Select From Date"
+                                    : "From: ${tempFromDate!.toLocal()}".split(
+                                        ' ',
+                                      )[0],
+                              ),
+                            ),
+
+                            // To Date Picker
+                            TextButton(
+                              onPressed: () async {
+                                DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate:
+                                      tempFromDate ??
+                                      DateTime(
+                                        2025,
+                                      ), // ✅ Start from selected From Date
+                                  lastDate: DateTime.now(), // ✅ No future date
+                                );
+                                if (picked != null) {
+                                  setState(() {
+                                    tempToDate = picked;
+                                  });
+                                }
+                              },
+                              child: Text(
+                                tempToDate == null
+                                    ? "Select To Date"
+                                    : "To: ${tempToDate!.toLocal()}".split(
+                                        ' ',
+                                      )[0],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                       Card(
                         child: CustomDropdown(
                           items: const [
@@ -151,9 +261,12 @@ class _WomenPageState extends State<WomenPage> {
                         onPressed: () {
                           setState(() {
                             selectedFilter = tempSelectedFilter;
+                            selectedDateFilter = tempSelecteddate;
                             selectedCheckboxes = List.from(
                               tempSelectedCheckboxes,
                             );
+                            fromDate = tempFromDate;
+                            toDate = tempToDate;
                           });
                         },
                         child: const Text("Apply Filters"),
@@ -165,6 +278,10 @@ class _WomenPageState extends State<WomenPage> {
                             tempSelectedCheckboxes.clear();
                             selectedFilter = null;
                             selectedCheckboxes.clear();
+                            fromDate = null;
+                            toDate = null;
+                            tempFromDate = null;
+                            tempToDate = null;
                           });
                         },
                         child: const Text("Clear Filters"),
@@ -248,6 +365,86 @@ class _WomenPageState extends State<WomenPage> {
                             ),
                             Card(
                               child: CustomDropdown(
+                                items: const ['All', 'Latest'],
+                                initialValue:
+                                    tempSelecteddate ?? selectedDateFilter,
+                                onChanged: (val) {
+                                  setState(() {
+                                    tempSelecteddate = val;
+                                  });
+                                },
+                              ),
+                            ),
+                            Card(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  // From Date Picker
+                                  TextButton(
+                                    onPressed: () async {
+                                      DateTime? picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime(2025, 01, 01),
+                                        lastDate:
+                                            DateTime.now(), // ✅ No future date
+                                      );
+                                      if (picked != null) {
+                                        setState(() {
+                                          tempFromDate = picked;
+
+                                          // If tempToDate exists and is before the new tempFromDate, reset it
+                                          if (tempToDate != null &&
+                                              tempToDate!.isBefore(
+                                                tempFromDate!,
+                                              )) {
+                                            tempToDate = null;
+                                          }
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      tempFromDate == null
+                                          ? "Select From Date"
+                                          : "From: ${tempFromDate!.toLocal()}"
+                                                .split(' ')[0],
+                                    ),
+                                  ),
+
+                                  // To Date Picker
+                                  TextButton(
+                                    onPressed: () async {
+                                      DateTime? picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate:
+                                            tempFromDate ??
+                                            DateTime(
+                                              2025,
+                                            ), // ✅ Start from selected From Date
+                                        lastDate:
+                                            DateTime.now(), // ✅ No future date
+                                      );
+                                      if (picked != null) {
+                                        setState(() {
+                                          tempToDate = picked;
+                                        });
+                                      }
+                                    },
+                                    child: Text(
+                                      tempToDate == null
+                                          ? "Select To Date"
+                                          : "To: ${tempToDate!.toLocal()}"
+                                                .split(' ')[0],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Card(
+                              child: CustomDropdown(
                                 items: const [
                                   'Price(Low to High)',
                                   'Price(High to Low)',
@@ -290,9 +487,14 @@ class _WomenPageState extends State<WomenPage> {
                                 setState(() {
                                   // Confirm temp values
                                   selectedFilter = tempSelectedFilter;
+                                  selectedDateFilter =
+                                      tempSelecteddate; // ✅ Apply date filter here
+
                                   selectedCheckboxes = List.from(
                                     tempSelectedCheckboxes,
                                   );
+                                  fromDate = tempFromDate;
+                                  toDate = tempToDate;
                                 });
                               },
                               child: const Text("Apply Filters"),
@@ -304,6 +506,12 @@ class _WomenPageState extends State<WomenPage> {
                                   tempSelectedCheckboxes.clear();
                                   selectedFilter = null;
                                   selectedCheckboxes.clear();
+                                  tempSelecteddate = null;
+                                  selectedDateFilter = null;
+                                  fromDate = null;
+                                  toDate = null;
+                                  tempFromDate = null;
+                                  tempToDate = null;
                                 });
                               },
                               child: const Text("Clear Filters"),

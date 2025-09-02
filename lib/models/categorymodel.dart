@@ -15,6 +15,7 @@ class CategoryItem {
   final int numDesigns;
   final int numSuppliers;
   final String createdAt;
+  final String created;
   final bool assured;
   final int reviewCount;
   final int ratingCount;
@@ -43,6 +44,7 @@ class CategoryItem {
     this.numDesigns = 0,
     this.numSuppliers = 0,
     this.createdAt = '',
+    this.created = '',
     this.assured = false,
     this.reviewCount = 0,
     this.ratingCount = 0,
@@ -78,6 +80,7 @@ class CategoryItem {
       numDesigns: json['num_designs'] ?? 0,
       numSuppliers: json['num_suppliers'] ?? 0,
       createdAt: json['created_iso'] ?? '',
+      created: json['created'] ?? '',
       assured: assuredDetails != null
           ? (assuredDetails['is_assured'] ?? false)
           : false,

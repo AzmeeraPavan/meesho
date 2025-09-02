@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
           "Electronics",
         ],
         pages: [
-          HmPage(),
+          Carroussel(),
           WomenPage(),
           MenPage(),
           KidsPage(),

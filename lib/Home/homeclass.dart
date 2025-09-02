@@ -1,139 +1,119 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:myntra/data_config.dart';
-import 'package:myntra/models/CategoryModel.dart';
-import 'package:myntra/pages/product_details/product_details_page.dart';
-import 'package:myntra/widget/customcheckbox.dart';
-import 'package:myntra/widget/customedropdown.dart';
-import 'package:myntra/widget/mediaqurry.dart';
 
-class HmPage extends StatefulWidget {
-  const HmPage({super.key});
-
+class Carroussel extends StatefulWidget {
   @override
-  State<HmPage> createState() => _WomenPageState();
+  _CarrousselState createState() => _CarrousselState();
 }
 
-class _WomenPageState extends State<HmPage> {
-  String? selectedFilter;
-  List<String> selectedCheckboxes = [];
-  late List<CategoryItem> categories = [];
-  Map<String, List<String>> filterOptions = {}; // For dynamic checkbox options
+class _CarrousselState extends State<Carroussel> {
+  late PageController controller;
+  int currentPage = 0;
+  Timer? timer;
 
-  String? tempSelectedFilter;
-  List<String> tempSelectedCheckboxes = [];
+  final List<String> images = [
+    'assets/images/i1.jpg',
+    'assets/images/i2.jpg',
+    'assets/images/i3.jpg',
+    'assets/images/i4.jpg',
+    'assets/images/i5.jpg',
+  ];
 
   @override
   void initState() {
     super.initState();
-    loadCategories();
-    loadFilterOptions();
-  }
+    controller = PageController(initialPage: currentPage);
 
-  // Load categories for product grid
-  Future<void> loadCategories() async {
-    final List<dynamic> rawValues = (women["catalogs"] as List<dynamic>?) ?? [];
-    categories = rawValues
-        .map((e) => CategoryItem.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
-    setState(() {}); // Refresh after loading
-  }
-
-  // Load title from assets
-  Future<String> _loadTitle() async {
-    String jsonString = await rootBundle.loadString('assets/data/title.json');
-    Map<String, dynamic> data = json.decode(jsonString);
-    return data["Women"] ?? "Men's Collection";
-  }
-
-  // Load filter options dynamically
-  Future<void> loadFilterOptions() async {
-    try {
-      String jsonString = await rootBundle.loadString(
-        'assets/data/filter.json',
+    // Auto-scroll every 3 seconds
+    timer = Timer.periodic(Duration(seconds: 3), (Timer t) {
+      if (currentPage < images.length - 1) {
+        currentPage++;
+      } else {
+        currentPage = 0;
+      }
+      controller.animateToPage(
+        currentPage,
+        duration: Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
       );
-      Map<String, dynamic> data = json.decode(jsonString);
+    });
+  }
 
-      filterOptions = data.map(
-        (key, value) => MapEntry(key, List<String>.from(value)),
-      );
-
-      print("Loaded filter options: $filterOptions"); // Debug log
-      setState(() {}); // Refresh UI
-    } catch (e) {
-      print("Error loading filter options: $e");
-    }
+  @override
+  void dispose() {
+    controller.dispose();
+    timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Responsive.init(context);
-
-    // Apply filtering based on selected checkboxes
-    List<CategoryItem> filteredCategories = categories.where((item) {
-      if (selectedCheckboxes.isEmpty)
-        return true; // Show all if no filter selected
-      return selectedCheckboxes.any(
-        (filter) => item.subCategory.toLowerCase() == filter.toLowerCase(),
-      );
-    }).toList();
-
-    //-----------------
-    if (selectedFilter != null) {
-      if (selectedFilter == 'Price(Low to High)') {
-        filteredCategories.sort((a, b) => a.price.compareTo(b.price));
-      } else if (selectedFilter == 'Price(High to Low)') {
-        filteredCategories.sort((a, b) => b.price.compareTo(a.price));
-      }
-    }
-    return FutureBuilder<String>(
-      future: _loadTitle(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            if (Responsive.isMobile) {
-              // ✅ Mobile layout
-              return Scaffold(
-                body: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(30),
+                topRight: Radius.circular(30),
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+              child: Container(
+                child: SizedBox(
+                  height: 200,
+                  child: Stack(
                     children: [
-                      Container(
-                        height: 300,
-                        width: 500,
-                        decoration: ShapeDecoration(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            side: const BorderSide(
-                              color: Colors.black,
-                              width: 0.25,
-                            ),
-                          ),
-                          color: Colors.white10,
+                      PageView.builder(
+                        controller: controller,
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentPage = index;
+                          });
+                        },
+                        itemCount: images.length,
+                        itemBuilder: (context, index) {
+                          return Image.network(
+                            images[index],
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                          );
+                        },
+                      ),
+                      Positioned(
+                        bottom: 10,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(images.length, (index) {
+                            return AnimatedContainer(
+                              duration: Duration(milliseconds: 300),
+                              margin: EdgeInsets.symmetric(horizontal: 4),
+                              width: currentPage == index ? 12 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.rectangle,
+
+                                color: currentPage == index
+                                    ? Colors.white
+                                    : Colors.white54,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ],
                   ),
                 ),
-              );
-            } else {
-              // ✅ Tablet & Desktop layout
-              return Scaffold(body: Row(children: [
-
-                  ],
-                ));
-            }
-          },
-        );
-      },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

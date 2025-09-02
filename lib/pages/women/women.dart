@@ -7,7 +7,12 @@ import 'package:myntra/pages/product_details/product_details_page.dart';
 import 'package:myntra/widget/customcheckbox.dart';
 import 'package:myntra/widget/customedropdown.dart';
 import 'package:myntra/widget/mediaqurry.dart';
+
 import 'package:intl/intl.dart';
+
+String formatDate(DateTime date) {
+  return DateFormat('dd-MMM-yyyy').format(date);
+}
 
 class WomenPage extends StatefulWidget {
   const WomenPage({super.key});
@@ -159,66 +164,84 @@ class _WomenPageState extends State<WomenPage> {
                         ),
                       ),
                       Card(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // From Date Picker
-                            TextButton(
-                              onPressed: () async {
-                                DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(2025),
-                                  lastDate: DateTime.now(), // ✅ No future date
-                                );
-                                if (picked != null) {
-                                  setState(() {
-                                    tempFromDate = picked;
-
-                                    // If tempToDate exists and is before the new tempFromDate, reset it
-                                    if (tempToDate != null &&
-                                        tempToDate!.isBefore(tempFromDate!)) {
-                                      tempToDate = null;
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // From Date Picker
+                                TextButton(
+                                  onPressed: () async {
+                                    DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate:
+                                          tempFromDate ??
+                                          DateTime.now(), // ✅ Use previously selected date
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime.now(),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        tempFromDate = picked;
+                                      });
                                     }
-                                  });
-                                }
-                              },
-                              child: Text(
-                                tempFromDate == null
-                                    ? "Select From Date"
-                                    : "From: ${tempFromDate!.toLocal()}".split(
-                                        ' ',
-                                      )[0],
-                              ),
+                                  },
+                                  child: Text(
+                                    tempFromDate == null
+                                        ? "Select From Date"
+                                        : "From: ${formatDate(tempFromDate!)}",
+                                  ),
+                                ),
+
+                                // To Date Picker
+                                TextButton(
+                                  onPressed: tempFromDate == null
+                                      ? null
+                                      : () async {
+                                          DateTime?
+                                          picked = await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                tempToDate ??
+                                                (tempFromDate ??
+                                                    DateTime.now()), // ✅ Use previously selected or fromDate
+                                            firstDate:
+                                                tempFromDate ??
+                                                DateTime(
+                                                  2020,
+                                                ), // ✅ Can't pick before fromDate
+                                            lastDate: DateTime.now(),
+                                          );
+
+                                          if (picked != null) {
+                                            setState(() {
+                                              tempToDate = picked;
+                                            });
+                                          }
+                                        },
+                                  child: Text(
+                                    tempToDate == null
+                                        ? "Select To Date"
+                                        : "To: ${formatDate(tempToDate!)}",
+                                  ),
+                                ),
+                              ],
                             ),
 
-                            // To Date Picker
-                            TextButton(
-                              onPressed: () async {
-                                DateTime? picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate:
-                                      tempFromDate ??
-                                      DateTime(
-                                        2025,
-                                      ), // ✅ Start from selected From Date
-                                  lastDate: DateTime.now(), // ✅ No future date
-                                );
-                                if (picked != null) {
-                                  setState(() {
-                                    tempToDate = picked;
-                                  });
-                                }
-                              },
-                              child: Text(
-                                tempToDate == null
-                                    ? "Select To Date"
-                                    : "To: ${tempToDate!.toLocal()}".split(
-                                        ' ',
-                                      )[0],
-                              ),
-                            ),
+                            // if (tempFromDate != null || tempToDate != null)
+                            //   Padding(
+                            //     padding: const EdgeInsets.all(8.0),
+                            //     child: Text(
+                            //       "${tempFromDate != null ? formatDate(tempFromDate!) : '---'}"
+                            //       "        -       "
+                            //       "${tempToDate != null ? formatDate(tempToDate!) : '---'}",
+                            //       style: TextStyle(
+                            //         fontSize: 14,
+                            //         fontWeight: FontWeight.bold,
+                            //       ),
+                            //     ),
+                            //   ),
                           ],
                         ),
                       ),
@@ -376,69 +399,87 @@ class _WomenPageState extends State<WomenPage> {
                               ),
                             ),
                             Card(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  // From Date Picker
-                                  TextButton(
-                                    onPressed: () async {
-                                      DateTime? picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2025, 01, 01),
-                                        lastDate:
-                                            DateTime.now(), // ✅ No future date
-                                      );
-                                      if (picked != null) {
-                                        setState(() {
-                                          tempFromDate = picked;
-
-                                          // If tempToDate exists and is before the new tempFromDate, reset it
-                                          if (tempToDate != null &&
-                                              tempToDate!.isBefore(
-                                                tempFromDate!,
-                                              )) {
-                                            tempToDate = null;
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      // From Date Picker
+                                      TextButton(
+                                        onPressed: () async {
+                                          DateTime?
+                                          picked = await showDatePicker(
+                                            context: context,
+                                            initialDate:
+                                                tempFromDate ??
+                                                DateTime.now(), // ✅ Use previously selected date
+                                            firstDate: DateTime(2020),
+                                            lastDate: DateTime.now(),
+                                          );
+                                          if (picked != null) {
+                                            setState(() {
+                                              tempFromDate = picked;
+                                            });
                                           }
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      tempFromDate == null
-                                          ? "Select From Date"
-                                          : "From: ${tempFromDate!.toLocal()}"
-                                                .split(' ')[0],
-                                    ),
+                                        },
+                                        child: Text(
+                                          tempFromDate == null
+                                              ? "Select From Date"
+                                              : "From: ${formatDate(tempFromDate!)}",
+                                        ),
+                                      ),
+
+                                      // To Date Picker
+                                      TextButton(
+                                        onPressed: tempFromDate == null
+                                            ? null
+                                            : () async {
+                                                DateTime?
+                                                picked = await showDatePicker(
+                                                  context: context,
+                                                  initialDate:
+                                                      tempToDate ??
+                                                      (tempFromDate ??
+                                                          DateTime.now()), // ✅ Use previously selected or fromDate
+                                                  firstDate:
+                                                      tempFromDate ??
+                                                      DateTime(
+                                                        2020,
+                                                      ), // ✅ Can't pick before fromDate
+                                                  lastDate: DateTime.now(),
+                                                );
+
+                                                if (picked != null) {
+                                                  setState(() {
+                                                    tempToDate = picked;
+                                                  });
+                                                }
+                                              },
+                                        child: Text(
+                                          tempToDate == null
+                                              ? "Select To Date"
+                                              : "To: ${formatDate(tempToDate!)}",
+                                        ),
+                                      ),
+                                    ],
                                   ),
 
-                                  // To Date Picker
-                                  TextButton(
-                                    onPressed: () async {
-                                      DateTime? picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate:
-                                            tempFromDate ??
-                                            DateTime(
-                                              2025,
-                                            ), // ✅ Start from selected From Date
-                                        lastDate:
-                                            DateTime.now(), // ✅ No future date
-                                      );
-                                      if (picked != null) {
-                                        setState(() {
-                                          tempToDate = picked;
-                                        });
-                                      }
-                                    },
-                                    child: Text(
-                                      tempToDate == null
-                                          ? "Select To Date"
-                                          : "To: ${tempToDate!.toLocal()}"
-                                                .split(' ')[0],
+                                  if (tempFromDate != null ||
+                                      tempToDate != null)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text(
+                                        "${tempFromDate != null ? formatDate(tempFromDate!) : '---'}"
+                                        "        -       "
+                                        "${tempToDate != null ? formatDate(tempToDate!) : '---'}",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
